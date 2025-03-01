@@ -2,10 +2,6 @@
  This project applies formal methods to address key challenges in drone delivery systems. It consists of two complementary components: (1) a path optimization solution that adapts the Traveling Salesman Problem to drone delivery using Answer Set Programming, and (2) a formal verification framework that models drone flight maneuvers using temporal logic (LTL/CTL). The path optimization balances distance and battery consumption to identify optimal delivery routes, while the formal verification ensures that drone flight behaviors satisfy critical safety and operational requirements. The implementation uses Potassco/clingo for ASP path optimization and NuSMV for model checking of temporal properties. This approach provides provable guarantees for drone delivery operations, balancing efficiency and safety in autonomous aerial logistics.
 
 
-
-I'll provide the complete markdown file including the TSP/Hamiltonian cycle part that was missing:
-
-```markdown
 # Formal Methods for Drone Delivery Systems 🚁📦
 
 ## Project Overview
@@ -281,4 +277,4 @@ Potential extensions of this work include:
 
 ---
 
-*This project was completed as part of the Formal Methods for Security course at the University of Bari "Aldo Moro", Master's Degree in Computer Security.*
+*This project was completed as part of the Formal Methods for Security course at the University of Bari "Aldo Moro", Master's Degree in Cyber Security.*
