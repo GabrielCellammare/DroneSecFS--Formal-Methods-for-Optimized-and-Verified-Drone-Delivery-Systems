@@ -34,6 +34,8 @@ We adapted the classical TSP to the drone delivery context by:
 - **Cost Function**: The optimization considers both distance traveled and battery consumption
 - **Implementation Tool**: Potassco/clingo (Answer Set Programming system)
 
+![Graph](tsp_grafo_pesato.png)
+
 #### ASP Implementation
 The implementation uses Answer Set Programming (ASP) through the Potassco system. The code includes:
 
@@ -104,6 +106,7 @@ With a total cost of 186 units (105 distance units + 81 battery consumption unit
 
 This result demonstrates the ability of ASP to find an optimal solution that balances two cost factors (distance and battery) while respecting the connectivity constraints of the problem.
 
+![Optimal Hamiltonian Cycle](tsp_ciclo_hamiltoniano.png)
 ### 2. Formal Verification of Drone Maneuvers ✅
 
 #### Modeling Approach
@@ -131,6 +134,7 @@ The atomic propositions include:
 - s: Below target altitude
 - u: Above target altitude
 
+![Kripke Structure](Struttura_di_kripke.jpg)
 #### Temporal Logic Properties
 We formalized key safety and operational requirements using:
 
