@@ -1,0 +1,100 @@
+MODULE main
+-- Definizione delle variabili del sistema
+VAR
+    -- Stato corrente del sistema secondo la struttura di Kripke
+    state : {s1, s2, s3, s4, s5, s6, s7, s8};
+    -- Variabili booleane che rappresentano le azioni del drone
+    inattivo : boolean;      -- Drone fermo al suolo
+    decollo : boolean;       -- Fase di decollo
+    hovering : boolean;      -- Fase di stazionamento
+    volo : boolean;          -- Fase di volo
+    atterraggio : boolean;   -- Fase di atterraggio
+    rilascio : boolean;      -- Fase di rilascio merce
+    -- Altitudine relativa rispetto al target
+    altitudine : {sotto_target, target, sopra_target};
+
+ASSIGN
+    -- Inizializzazione delle variabili di stato
+    -- Il drone parte da fermo al suolo
+    init(inattivo) := TRUE;
+    init(decollo) := FALSE;
+    init(hovering) := FALSE;
+    init(volo) := FALSE;
+    init(altitudine) := sotto_target;
+    init(rilascio) := FALSE;
+    init(atterraggio) := FALSE;
+    
+    -- Stato iniziale del sistema (S1: inattivo)
+    init(state) := s1;
+    
+    -- Definizione delle transizioni tra stati secondo la struttura di Kripke
+    next(state) := case
+        state = s1 : s2;                    -- Da inattivo a decollo
+        state = s2 : s4;                    -- Da decollo a hovering
+        state = s3 : s1;                    -- Da atterraggio a inattivo
+        state = s4 : {s3,s5,s6,s7,s8};      -- Da hovering a volo/atterraggio/rilascio
+        state = s5 : {s4,s6,s7};            -- Da volo a hovering o cambio altitudine
+        state = s6 : s5;                    -- Da sopra target a volo normale
+        state = s7 : s5;                    -- Da sotto target a volo normale
+        state = s8 : s4;                    -- Da rilascio a hovering
+        TRUE : state;
+    esac;
+    
+    -- Aggiornamento delle variabili di stato in base alle transizioni
+    next(inattivo) := case
+        next(state) = s1 : TRUE;
+        TRUE : FALSE;
+    esac;
+    
+    next(decollo) := case
+        next(state) = s2 : TRUE;
+        TRUE : FALSE;
+    esac;
+    
+    next(hovering) := case
+        next(state) = s4 : TRUE;
+        TRUE : FALSE;
+    esac;
+    
+    next(volo) := case
+        next(state) in {s5, s6, s7} : TRUE;
+        TRUE : FALSE;
+    esac;
+    
+    next(rilascio) := case
+        next(state) = s8 : TRUE;
+        TRUE : FALSE;
+    esac;
+    
+    next(atterraggio) := case
+        next(state) = s3 : TRUE;
+        TRUE : FALSE;
+    esac;
+    
+    -- Gestione dell'altitudine in base allo stato
+    next(altitudine) := case
+        next(state) = s6 : sopra_target;    -- Volo ad alta quota
+        next(state) in {s4, s5, s8} : target;  -- Hovering, volo normale e rilascio
+        next(state) in {s1, s2, s3, s7} : sotto_target;  -- Stati vicini al suolo
+        TRUE : altitudine;
+    esac;
+
+-- Proprietà LTL che verificano i comportamenti sequenziali
+LTLSPEC G(rilascio -> X hovering)       -- Dopo il rilascio si va sempre in hovering
+LTLSPEC G(inattivo -> X decollo)        -- Dallo stato inattivo si può solo decollare
+LTLSPEC G((volo & altitudine = sopra_target) -> X(volo & altitudine = target))
+LTLSPEC G((volo & altitudine = sotto_target) -> X(volo & altitudine = target))
+LTLSPEC G((hovering & altitudine = target) -> X(atterraggio | volo | rilascio))  -- Transizioni possibili dall'hovering
+LTLSPEC G((volo & altitudine = sopra_target) -> (!atterraggio U altitudine = target))  -- Atterraggio non concesso ad alte altitudini
+LTLSPEC G(decollo -> (altitudine = sotto_target & F(altitudine = target))) -- Il decollo avviene sempre da una posizione sotto target e raggiunga quella target
+-- Proprietà LTL che non deve essere soddisfatta	
+LTLSPEC F(G(hovering))
+
+-- Proprietà CTL che verificano i comportamenti ramificati
+CTLSPEC AG(volo & altitudine = target -> EX(hovering | (volo & altitudine != target)))
+CTLSPEC AG(volo -> E[volo U hovering])                     -- Esiste sempre un percorso dal volo all'hovering
+CTLSPEC AG(hovering -> EF(atterraggio) & EF(volo))   -- Possibilità di cambiare la missione in modi diversi
+CTLSPEC AG(volo -> EF(altitudine = sopra_target) & EF(altitudine = sotto_target))  -- Libertà di navigazione verticale
+CTLSPEC AG(volo -> EF(atterraggio)) -- Da ogni stato di volo è sempre possibile raggiungere l'atterraggio
+-- Proprietà CTL che non deve essere soddisfatta
+CTLSPEC AG(hovering -> AF rilascio)     -- Non è vero che l'hovering deve portare al rilascio
